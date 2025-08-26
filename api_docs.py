@@ -33,9 +33,11 @@ def log_and_fix_auth_header():
         logger.debug("Fixed headers: %s", dict(request.headers))
 
 user_model = restx_api.model('User', {
+    'username': fields.String(required=False, description='Username (optional, required for signup)'),
     'email': fields.String(required=True, description='User email'),
     'password': fields.String(required=True, description='User password')
 })
+
 
 product_model = restx_api.model('Product', {
     'name': fields.String(required=True, description='Product name'),

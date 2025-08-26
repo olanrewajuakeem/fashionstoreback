@@ -10,7 +10,7 @@ with app.app_context():
     password = "admin1234"
     if not User.query.filter_by(email=email).first(): 
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-        admin = User(email=email, password=hashed_password.decode('utf-8'), is_admin=True)
+        admin = User(username="admin", email=email, password=hashed_password.decode('utf-8'), is_admin=True)
         db.session.add(admin)
         db.session.commit()
         print("Admin user created successfully")

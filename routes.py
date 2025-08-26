@@ -14,6 +14,7 @@ def is_admin(user_id):
 @api.route('/signup', methods=['POST'])
 def signup():
     data = request.get_json()
+    username = data.get('username')
     email = data.get('email')
     password = data.get('password')
     
@@ -25,7 +26,7 @@ def signup():
     
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     
-    new_user = User(email=email, password=hashed_password.decode('utf-8'))
+    new_user = User(username=username, email=email, password=hashed_password.decode('utf-8'))
     db.session.add(new_user)
     db.session.commit()
     

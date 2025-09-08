@@ -1,38 +1,51 @@
-# app.py
-from flask import Flask, jsonify
+from flask import Flask
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from flask_cors import CORS
 from flask_jwt_extended import JWTManager
-from config import Config
-from models import db
-from routes import api as api_blueprint
-from api_docs import api_doc_bp
-import logging
+from flask_restx import Api
+import bcrypt
+
+app = Flask(__name__)
+CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fashionstore.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['JWT_SECRET_KEY'] = 'your-secret-key'
+app.config['DEBUG'] = True
+
+# Initialize db
+db = SQLAlchemy()
+db.init_app(app)
+migrate = Migrate(app, db)
+jwt = JWTManager(app)
+
+# Debug db initialization
+with app.app_context():
+    print("DB initialized:", db.session)
+
+restx_api = Api(
+    app,
+    title='FashionStore API',
+    description='API for FashionStore',
+    doc='/swagger/',
+    authorizations={
+        'Bearer': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization',
+            'description': 'Enter your Bearer token in the format: Bearer <your-jwt-token>'
+        }
+    }
+)
 
 
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+from models import User
+from api_doc import api_doc_bp
+from routes import api_ns
 
-def create_app():
-    app = Flask(__name__)
-    app.config.from_object(Config)
-    
-   
-    db.init_app(app)
-    Migrate(app, db)
-    CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
-    JWTManager(app)
-    
+restx_api.add_namespace(api_ns, path='/api')
+app.register_blueprint(api_doc_bp, url_prefix='/')
 
-    logger.debug("Registering api_blueprint")
-    app.register_blueprint(api_blueprint, url_prefix='/api')
-    logger.debug("Registering api_doc_bp")
-    app.register_blueprint(api_doc_bp, url_prefix='/api-docs')
-    
-    
-    return app
 
 if __name__ == '__main__':
-    app = create_app()
-    app.run(debug=True)
+    app.run(debug=True, host='127.0.0.1', port=5000)
